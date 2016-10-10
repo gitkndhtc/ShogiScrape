@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -Dspring.profiles.active=cloud -jar build/libs/spring-boot-Scrape-1.0.0-SNAPSHOT.jar --server.port=$PORT
