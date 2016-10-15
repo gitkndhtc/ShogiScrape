@@ -42,8 +42,15 @@ dependencies {
     testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
-task stage(dependsOn: ['clean', 'assemble'])
+task stage(type: Copy, dependsOn: [clean, build]) {
+    from jar.archivePath
+    into project.rootDir
+    rename {
+        'app.jar'
+    }
+}
+stage.mustRunAfter(clean)
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '2.14'
+clean << {
+    project.file('app.jar').delete()
 }
