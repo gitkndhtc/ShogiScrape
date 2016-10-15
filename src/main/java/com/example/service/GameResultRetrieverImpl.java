@@ -27,7 +27,7 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
 
     private static final String gameResultsPage = "http://www.shogi.or.jp/game/";
 
-    @Scheduled(initialDelay = 5000, fixedRate = 50000)
+    @Scheduled(initialDelay = 5000, fixedRate = 12*3600*1000)
     @Override
     public void retrieveGameResults() {
         String resultsPage = shogiAssocWebClient.getSimplePage(gameResultsPage);

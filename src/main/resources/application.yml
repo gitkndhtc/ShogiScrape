@@ -1,10 +1,8 @@
 spring:
   profle:
-    ## (1)
     active: dev
 ---
 spring:
-    ## (2)
     profiles: dev
     datasource:
       driverClassName: org.h2.Driver
@@ -15,3 +13,12 @@ spring:
       database: H2
       hibernate:
         ddl-auto: create-drop
+---
+spring:
+    profiles: cloud
+    datasource:
+      driverClassName: org.postgresql.Driver
+    jpa:
+      database: POSTGRESQL
+      hibernate:
+        ddl-auto: update
