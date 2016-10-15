@@ -42,7 +42,7 @@ dependencies {
     testCompile('org.springframework.boot:spring-boot-starter-test')
 }
 
-task stage(dependsOn: ['clean', 'build'])
+task stage(dependsOn: ['clean', 'assemble'])
 
 task wrapper(type: Wrapper) {
     gradleVersion = '2.14'
