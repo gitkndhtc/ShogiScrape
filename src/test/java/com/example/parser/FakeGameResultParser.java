@@ -23,6 +23,12 @@ public class FakeGameResultParser implements GameResultParser{
     public GameResultTable parseResultsOnGalaxyTournament_returnValue = new GameResultTable(
             "先手","勝","後手","負","NHK杯","日付",null);
 
+    public String parseResultsOnQueenTournament_arg_resultPage = "This arg has not yet set";
+    public GameResultTable parseResultsOnQueenTournament_arg_gameResult;
+    public boolean parseResultsOnQueenTournament_wasCalled = false;
+    public GameResultTable parseResultsOnQueenTournament_returnValue = new GameResultTable(
+            "先手","勝","後手","負","女流王将戦","日付",null);
+
     @Override
     public List<GameResult> parseResultsOnShogiAssoc(String resultsPage, String gameDate) {
         parseResultsOnShogiAssoc_args.add(resultsPage);
@@ -48,5 +54,14 @@ public class FakeGameResultParser implements GameResultParser{
         parseResultsOnGalaxyTournament_wasCalled = true;
 
         return parseResultsOnGalaxyTournament_returnValue;
+    }
+
+    @Override
+    public GameResultTable parseResultsOnQueenTournament(String resultPage, GameResultTable gameResultTable) {
+        parseResultsOnQueenTournament_arg_resultPage = resultPage;
+        parseResultsOnQueenTournament_arg_gameResult = gameResultTable;
+        parseResultsOnQueenTournament_wasCalled = true;
+
+        return parseResultsOnQueenTournament_returnValue;
     }
 }

@@ -30,16 +30,16 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @ActiveProfiles("GameResultRetriever")
 public class GameResultRetrieverTest {
     @Autowired
-    GameResultRetriever gameResultRetriever;
+    private GameResultRetriever gameResultRetriever;
 
     @Autowired
-    ShogiAssocWebClient shogiAssocWebClient;
+    private ShogiAssocWebClient shogiAssocWebClient;
 
     @Autowired
-    GameResultParser gameResultParser;
+    private GameResultParser gameResultParser;
 
     @Autowired
-    GameResultsRepository gameResultsRepository;
+    private GameResultsRepository gameResultsRepository;
 
     private FakeShogiAssocWebClient fakeShogiAssocWebClient;
     private FakeGameResultParser fakeGameResultParser;
@@ -125,7 +125,7 @@ public class GameResultRetrieverTest {
     }
 
     @Test
-    public void test_updateNHKCupResults_getUnsatisfiedResult() {
+    public void test_updateNHKCupResults_parseResult() {
         fakeShogiAssocWebClient.getSimplePage_returnValue = "<html><body>Master was undefeated<body><html>";
         GameResultTable gameResultTable = new GameResultTable("船江恒平", "", "近藤誠也", "", "NHK杯", "2016年4月3日", null);
         gameResultsRepository.save(gameResultTable);
@@ -169,7 +169,7 @@ public class GameResultRetrieverTest {
     }
 
     @Test
-    public void test_updateGalaxyTournamentResults_getUnsatisfiedResult() {
+    public void test_updateGalaxyTournamentResults_parseResult() {
         fakeShogiAssocWebClient.getSimplePage_returnValue = "<html><body>Master was undefeated<body><html>";
         GameResultTable gameResultTable = new GameResultTable("門倉啓太", "", "今泉健司", "", "銀河戦 Eブロック", "2016年11月15日", null);
         gameResultsRepository.save(gameResultTable);
@@ -199,4 +199,49 @@ public class GameResultRetrieverTest {
         assertThat(actualResult.size(), is(1));
         assertThat(actualResult.get(0), is(expectedResult));
     }
+
+    @Test
+    public void test_updateQueenTournamentResults_getPage_onSuccess() {
+        String expectedArg = "http://www.igoshogi.net/shogi/Loushou/index.html";
+
+
+        gameResultRetriever.updateQueenTournamentResults();
+
+
+        assertThat(fakeShogiAssocWebClient.getSimplePage_args, is(expectedArg));
+        assertThat(fakeShogiAssocWebClient.geSimplePage_wasCalled, is(true));
+    }
+
+    @Test
+    public void test_updateQueenTournamentResults_parseResult() {
+        fakeShogiAssocWebClient.getSimplePage_returnValue = "<html><body>Master was undefeated<body><html>";
+        GameResultTable gameResultTable = new GameResultTable("里見香奈", "", "香川愛生", "", "女流王将戦 第1局", "2016年11月12日", null);
+        gameResultsRepository.save(gameResultTable);
+
+
+        gameResultRetriever.updateQueenTournamentResults();
+
+
+        assertThat(fakeGameResultParser.parseResultsOnQueenTournament_arg_resultPage, is("<html><body>Master was undefeated<body><html>"));
+        assertThat(fakeGameResultParser.parseResultsOnQueenTournament_arg_gameResult, is(gameResultTable));
+        assertThat(fakeGameResultParser.parseResultsOnQueenTournament_wasCalled, is(true));
+    }
+
+    @Test
+    public void test_updateQueenTournamentResults_getUpdatedResult() {
+        fakeShogiAssocWebClient.getSimplePage_returnValue = "<html><body>Master was undefeated<body><html>";
+        GameResultTable gameResultTable = new GameResultTable("ドラえもん", "", "野比のび太", "", "女流王将戦 第1局", "2201年1月3日", null);
+        gameResultsRepository.save(gameResultTable);
+        GameResultTable expectedResult = new GameResultTable("里見香奈", "勝", "香川愛生", "負", "女流王将戦 第1局", "2016年11月12日", null);
+        fakeGameResultParser.parseResultsOnQueenTournament_returnValue = expectedResult;
+
+
+        gameResultRetriever.updateQueenTournamentResults();
+        List<GameResultTable> actualResult = gameResultsRepository.findByTournamentNameContainingAndFirstMoverResult("女流王将", "勝");
+        System.out.println("actualResult = " + actualResult);
+
+        assertThat(actualResult.size(), is(1));
+        assertThat(actualResult.get(0), is(expectedResult));
+    }
+
 }

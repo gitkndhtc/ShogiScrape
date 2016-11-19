@@ -148,6 +148,34 @@ public class GameResultParserTest {
         assertThat(actualResult, is(gameResultTable));
     }
 
+    @Test
+    public void test_parseResultsOnQueenTournament_withSuccessfulResults() {
+        FileReader fileReader = new FileReader();
+        String resultsPageOnQueenTournament = fileReader.readAll("04_ResultOfQueenTournament.html");
+        GameResultTable gameResultTable = new GameResultTable("里見香奈", "", "香川愛生", "", "女流王将戦 第1局", "2016年11月12日", null);
+        GameResultTable expectedResults = new GameResultTable("里見香奈", "勝", "香川愛生", "負", "女流王将戦 第1局", "2016年11月12日", null);
+
+        GameResultTable actualResults =
+                gameResultParser.parseResultsOnQueenTournament(resultsPageOnQueenTournament,gameResultTable);
+
+
+        assertThat(actualResults, is(expectedResults));
+    }
+
+    @Test
+    public void test_parseResultsOnQueenTournament_withFailureResult() {
+        FileReader fileReader = new FileReader();
+        String resultsPageOnQueenTournament = fileReader.readAll("04_ResultOfQueenTournament.html");
+        GameResultTable gameResultTable = new GameResultTable("Dummy1","","Dummy2","","女流王将戦 第x局","2016年11月15日",null);
+
+
+        GameResultTable actualResult =
+                gameResultParser.parseResultsOnQueenTournament(resultsPageOnQueenTournament,gameResultTable);
+
+
+        assertThat(actualResult, is(gameResultTable));
+    }
+
 
 /*
     @Test

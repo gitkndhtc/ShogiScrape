@@ -23,6 +23,7 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
     private static final String gameResultsURL = "http://www.shogi.or.jp/game/";
     private static final String NHKCupResultsURL = "http://www.shogi.or.jp/match/nhk/";
     private static final String GalaxyTournametResultsURL = "http://www.shogi.or.jp/match/ginga/";
+    private static final String QueenTournametResultsURL = "http://www.igoshogi.net/shogi/Loushou/index.html";
 
     @Scheduled(initialDelay = 1000*30*1, fixedRate = 1000*3600*12)
     @Override
@@ -37,7 +38,7 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
                 .forEach(gameResultTable -> gameResultsRepository.save(gameResultTable));
     }
 
-    @Scheduled(initialDelay = 1000*90*1, fixedRate = 1000*3600*12)
+    @Scheduled(initialDelay = 1000*120*1, fixedRate = 1000*3600*12)
     @Override
     public void updateNHKCupResults() {
         String NHKCupResultsPage = shogiAssocWebClient.getSimplePage(NHKCupResultsURL);
@@ -52,7 +53,7 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
                         gameResultsRepository.save(gameResultTable));
     }
 
-    @Scheduled(initialDelay = 1000*60*1, fixedRate = 1000*3600*12)
+    @Scheduled(initialDelay = 1000*90*1, fixedRate = 1000*3600*12)
     @Override
     public void updateGalaxyTournamentResults() {
         String galaxyTournametResultsPage = shogiAssocWebClient.getSimplePage(GalaxyTournametResultsURL);
@@ -62,6 +63,21 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
                 .peek(System.out::println)
                 .map(gameResultTable ->
                         gameResultParser.parseResultsOnGalaxyTournament(galaxyTournametResultsPage,gameResultTable))
+                .peek(System.out::println)
+                .forEach(gameResultTable ->
+                        gameResultsRepository.save(gameResultTable));
+    }
+
+    @Scheduled(initialDelay = 1000*60*1, fixedRate = 1000*3600*12)
+    @Override
+    public void updateQueenTournamentResults() {
+        String queenTournamentResultsPage = shogiAssocWebClient.getSimplePage(QueenTournametResultsURL);
+
+        gameResultsRepository.findByTournamentNameContainingAndFirstMoverResult("女流王将","")
+                .stream()
+                .peek(System.out::println)
+                .map(gameResultTable ->
+                        gameResultParser.parseResultsOnQueenTournament(queenTournamentResultsPage,gameResultTable))
                 .peek(System.out::println)
                 .forEach(gameResultTable ->
                         gameResultsRepository.save(gameResultTable));
