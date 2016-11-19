@@ -42,20 +42,20 @@ public class GameResultParserImpl implements GameResultParser {
         this.month = currentDate[1] + "月";
         this.day = currentDate[2] + "日";
 
-        Pattern datePattern = Pattern.compile(datePatternString);
-        Pattern resultsPattern = Pattern.compile(resultsPatternString);
         String gameDate = "";
         List<GameResult> gameResults = new ArrayList<>();
 
         List<String> resultPageRows = Arrays.asList(resultPage.split("\n"));
 
         for (String resultPageRow : resultPageRows) {
-            Matcher dateResult = datePattern.matcher(resultPageRow);
+            Matcher dateResult =
+                    Pattern.compile(datePatternString).matcher(resultPageRow);
             if (dateResult.find()) {
                 gameDate = convertGameDate(dateResult.group(1));
                 continue;
             } else {
-                Matcher matchingResult = resultsPattern.matcher(resultPageRow);
+                Matcher matchingResult =
+                        Pattern.compile(resultsPatternString).matcher(resultPageRow);
                 if (matchingResult.find()) {
                     gameResults.add(new GameResult(
                                     matchingResult.group(6),
@@ -164,11 +164,11 @@ public class GameResultParserImpl implements GameResultParser {
         if(thisMonth.contentEquals("1")) {
             year = gameDates.get(0).contains("12") ? lastYear : thisYear;
         } else {
-            year = thisYear;
+            year = thisYear + "年";
         }
 
         if (gameDates.size() == 1) {
-            return year + "年" + gameDate;
+            return year + gameDate;
         } else {
             String firstDay = year + gameDates.get(0) + "日";
             String secondDay =

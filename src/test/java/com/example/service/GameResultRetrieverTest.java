@@ -5,6 +5,7 @@ import com.example.domain.GameResultTable;
 import com.example.parser.FakeGameResultParser;
 import com.example.parser.GameResultParser;
 import com.example.repository.GameResultsRepository;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,6 +48,10 @@ public class GameResultRetrieverTest {
     public void setUp() {
         fakeShogiAssocWebClient = (FakeShogiAssocWebClient) shogiAssocWebClient;
         fakeGameResultParser = (FakeGameResultParser) gameResultParser;
+    }
+    @After
+    public void tearDown() {
+        gameResultsRepository.deleteAll();
     }
 
     @Test
@@ -181,7 +186,7 @@ public class GameResultRetrieverTest {
     @Test
     public void test_updateGalaxyTournamentResults_getUpdatedResult() {
         fakeShogiAssocWebClient.getSimplePage_returnValue = "<html><body>Master was undefeated<body><html>";
-        GameResultTable gameResultTable = new GameResultTable("ドラえもん", "", "野比のび太", "", "NHK杯", "2201年1月3日", null);
+        GameResultTable gameResultTable = new GameResultTable("ドラえもん", "", "野比のび太", "", "銀河戦 Eブロック", "2201年1月3日", null);
         gameResultsRepository.save(gameResultTable);
         GameResultTable expectedResult = new GameResultTable("門倉啓太", "負", "今泉健司", "勝", "銀河戦 Eブロック", "2016年11月15日", null);
         fakeGameResultParser.parseResultsOnGalaxyTournament_returnValue = expectedResult;

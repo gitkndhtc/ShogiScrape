@@ -1,6 +1,7 @@
 package com.example.repository;
 
 import com.example.domain.GameResultTable;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class GameResultsRepositoryTest {
     @Autowired
     GameResultsRepository gameResultsRepository;
+
+    @After
+    public void tearDown() {
+        gameResultsRepository.deleteAll();
+    }
 
     @Test
     public void test_Save() {
