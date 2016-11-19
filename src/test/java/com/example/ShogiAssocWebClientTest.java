@@ -20,6 +20,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @ActiveProfiles("unit")
 public class ShogiAssocWebClientTest {
     private static final String gameResultsPage = "http://www.shogi.or.jp/game/";
+    private static final String resultsPageOfNHKCup = "http://www.shogi.or.jp/match/nhk/";
 
     @Autowired
     ShogiAssocWebClient shogiAssocWebClient;
@@ -28,6 +29,15 @@ public class ShogiAssocWebClientTest {
     @Test
     public void test_getSimplePage_whenSuccessful() {
         String resultPage = shogiAssocWebClient.getSimplePage(gameResultsPage);
+
+
+        System.out.println("resultPage = " + resultPage);
+        assertThat(resultPage, is(notNullValue()));
+    }
+
+    @Test
+    public void test_getNHKCupPage_whenSuccessful() {
+        String resultPage = shogiAssocWebClient.getSimplePage(resultsPageOfNHKCup);
 
 
         System.out.println("resultPage = " + resultPage);

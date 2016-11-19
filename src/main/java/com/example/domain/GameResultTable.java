@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "GAME_RESULTS")
@@ -26,5 +27,6 @@ public class GameResultTable {
     @Id
     private String gameDate;
     @Column
-    private String createdDate;
+    @Temporal(TemporalType.DATE)
+    private Date createdDate;
 }

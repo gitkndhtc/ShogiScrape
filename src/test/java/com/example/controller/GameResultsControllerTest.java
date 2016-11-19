@@ -66,7 +66,7 @@ public class GameResultsControllerTest {
 
     @Test
     public void test_getGameResults_onSuccess() throws Exception {
-        GameResultTable gameResultTable = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "2016年9月14日", "");
+        GameResultTable gameResultTable = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "2016年9月14日", null);
         PageImpl<GameResultTable> expectedResultsPageImpl = new PageImpl<GameResultTable>(Collections.singletonList(gameResultTable));
 
 

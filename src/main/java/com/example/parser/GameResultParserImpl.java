@@ -1,7 +1,10 @@
 package com.example.parser;
 
 import com.example.GameResult;
+import com.example.domain.GameResultTable;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +13,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class GameResultParserImpl implements GameResultParser {
+    private static final String skipIndicator = "9999年12月31日";
     private static final String datePatternString = "(\\d{1,2}月.*\\d{1,2}日)";
     private static final String resultsPatternString =
             "<tr>" +
@@ -19,7 +23,7 @@ public class GameResultParserImpl implements GameResultParser {
                     "<td>(<a.*\">)?([^<]*)(</a>)?</td>" +
                     "<td.*>(.)</td>" +
                     "<td>.*</td>" +
-                    "</tr>";
+            "</tr>";
 //<tr>
 //    <td>順位戦A級 </td>
 //    <td class="tac">●</td>
@@ -66,8 +70,74 @@ public class GameResultParserImpl implements GameResultParser {
             }
         }
         return gameResults.stream()
-                .filter(gameResult -> gameResult.getGameDate().contains(targetGameDate))
+                .filter(gameResult -> targetGameDate
+                        == skipIndicator ? true : gameResult.getGameDate().contains(targetGameDate))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public GameResultTable parseResultsOnNHKCup(String resultPage, GameResultTable gameResultTable) {
+        int index = gameResultTable.getGameDate().indexOf("年") + 1;
+        String gameDate = gameResultTable.getGameDate().substring(index);
+        String resultsPatternStringForNHK =
+                        "<td>" + gameDate + "...</td>" +
+                        ".+?<td>(.)</td>" +
+                        ".+?<td>.*?" + gameResultTable.getFirstMover() + ".*?</td>" +
+                        ".+?<td>.*?" + gameResultTable.getSecondMover() + ".*?</td>" +
+                        ".+?<td>(.)</td>";
+        GameResultTable updatedGameResultTable = gameResultTable;
+        String resultPageRow = resultPage.replaceAll("\n","");
+        Matcher matchingResult =
+                Pattern.compile(resultsPatternStringForNHK)
+                .matcher(resultPageRow);
+
+        if (matchingResult.find()) {
+            updatedGameResultTable = new GameResultTable(
+                    gameResultTable.getFirstMover(),
+                    convertResultCharacter(matchingResult.group(1)),
+                    gameResultTable.getSecondMover(),
+                    convertResultCharacter(matchingResult.group(2)),
+                    gameResultTable.getTournamentName(),
+                    gameResultTable.getGameDate(),
+                    null
+            );
+        }
+
+        return updatedGameResultTable;
+    }
+
+    @Override
+    public GameResultTable parseResultsOnGalaxyTournament(String resultPage, GameResultTable gameResultTable) {
+        int beginIdx = gameResultTable.getGameDate().indexOf("月") + 1;
+        int endIdx = gameResultTable.getGameDate().indexOf("日");
+        String gameDate = gameResultTable.getGameDate().substring(beginIdx,endIdx);
+        String resultsPatternStringForGalaxy =
+                "<td>.*?" + gameDate + "日.*?</td>" +
+                ".+?<td>.+?</td>" +
+                ".+?<td>.+?</td>" +
+                ".+?<td>(.)</td>" +
+                ".+?<td>.*?" + gameResultTable.getFirstMover() + ".*?</td>" +
+                ".+?<td>.*?" + gameResultTable.getSecondMover() + ".*?</td>" +
+                ".+?<td>(.)</td>";
+        GameResultTable updatedGameResultTable = gameResultTable;
+        String resultPageRow = resultPage.replaceAll("\n","");
+        Matcher matchingResult =
+                Pattern.compile(resultsPatternStringForGalaxy)
+                        .matcher(resultPageRow);
+
+        if (matchingResult.find()) {
+            updatedGameResultTable = new GameResultTable(
+                    gameResultTable.getFirstMover(),
+                    convertResultCharacter(matchingResult.group(1)),
+                    gameResultTable.getSecondMover(),
+                    convertResultCharacter(matchingResult.group(2)),
+                    gameResultTable.getTournamentName(),
+                    gameResultTable.getGameDate(),
+                    null
+            );
+        }
+
+        return updatedGameResultTable;
     }
 
     private String convertResultCharacter(String resultCharacter) {
@@ -85,8 +155,20 @@ public class GameResultParserImpl implements GameResultParser {
 
     private String convertGameDate(String gameDate) {
         List<String> gameDates = Arrays.asList(gameDate.split("・"));
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("M");
+        String thisMonth = LocalDate.now().format(dateFormatter);
+        dateFormatter = DateTimeFormatter.ofPattern("YYYY");
+        String thisYear = LocalDate.now().format(dateFormatter);
+        String lastYear = LocalDate.now().minusYears(1).format(dateFormatter);
+
+        if(thisMonth.contentEquals("1")) {
+            year = gameDates.get(0).contains("12") ? lastYear : thisYear;
+        } else {
+            year = thisYear;
+        }
+
         if (gameDates.size() == 1) {
-            return year + gameDate;
+            return year + "年" + gameDate;
         } else {
             String firstDay = year + gameDates.get(0) + "日";
             String secondDay =

@@ -22,7 +22,7 @@ public class GameResultsRepositoryTest {
 
     @Test
     public void test_Save() {
-        GameResultTable gameResultTable = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "9月15日", "");
+        GameResultTable gameResultTable = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "9月15日", null);
 
 
         gameResultsRepository.save(gameResultTable);
@@ -40,13 +40,32 @@ public class GameResultsRepositoryTest {
     }
     @Test
     public void test_Save_whenSameRecordExists() {
-        GameResultTable gameResultTable = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "9月15日", "2016/10/05");
-        GameResultTable gameResultTable2 = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "9月15日", "2016/10/06");
+        GameResultTable gameResultTable = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "9月15日", null);
+        GameResultTable gameResultTable2 = new GameResultTable("行方尚史", "負", "羽生善治", "勝", "順位戦A級", "9月15日", null);
 
 
         gameResultsRepository.save(gameResultTable);
         gameResultsRepository.save(gameResultTable2);
         List<GameResultTable> actualResults = gameResultsRepository.findAll();
+        Integer actualListSize = actualResults.size();
+
+
+        assertThat(actualListSize, is(1));
+        assertThat(actualResults.get(0).getFirstMover(), is(gameResultTable.getFirstMover()));
+        assertThat(actualResults.get(0).getFirstMoverResult(), is(gameResultTable.getFirstMoverResult()));
+        assertThat(actualResults.get(0).getSecondMover(), is(gameResultTable.getSecondMover()));
+        assertThat(actualResults.get(0).getSecondMoverResult(), is(gameResultTable.getSecondMoverResult()));
+        assertThat(actualResults.get(0).getTournamentName(), is(gameResultTable.getTournamentName()));
+        assertThat(actualResults.get(0).getGameDate(), is(gameResultTable.getGameDate()));
+    }
+
+    @Test
+    public void test_findNoResultGames() {
+        GameResultTable gameResultTable = new GameResultTable("丸山忠久", "", "村山慈明", "", "NHK杯", "11月6日", null);
+        gameResultsRepository.save(gameResultTable);
+
+
+        List<GameResultTable> actualResults = gameResultsRepository.findByTournamentNameContainingAndFirstMoverResult("NHK","");
         Integer actualListSize = actualResults.size();
 
 

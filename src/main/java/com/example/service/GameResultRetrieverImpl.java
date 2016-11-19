@@ -5,11 +5,9 @@ import com.example.ShogiAssocWebClient;
 import com.example.domain.GameResultTable;
 import com.example.parser.GameResultParser;
 import com.example.repository.GameResultsRepository;
-import com.example.util.DateGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.List;
 import java.util.function.Function;
 
 public class GameResultRetrieverImpl implements GameResultRetriever {
@@ -22,24 +20,53 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
     @Autowired
     GameResultsRepository gameResultsRepository;
 
-    @Autowired
-    DateGenerator dateGenerator;
+    private static final String gameResultsURL = "http://www.shogi.or.jp/game/";
+    private static final String NHKCupResultsURL = "http://www.shogi.or.jp/match/nhk/";
+    private static final String GalaxyTournametResultsURL = "http://www.shogi.or.jp/match/ginga/";
 
-    private static final String gameResultsPage = "http://www.shogi.or.jp/game/";
-
-    @Scheduled(initialDelay = 5000, fixedRate = 12*3600*1000)
+    @Scheduled(initialDelay = 1000*30*1, fixedRate = 1000*3600*12)
     @Override
     public void retrieveGameResults() {
-        String resultsPage = shogiAssocWebClient.getSimplePage(gameResultsPage);
-        String yesterday = dateGenerator.getYesterday();
+        String resultsPage = shogiAssocWebClient.getSimplePage(gameResultsURL);
+        String targetDate = "9999年12月31日";
 
-        List<GameResult> gameResults =
-                gameResultParser.parseResultsOnShogiAssoc(resultsPage, yesterday);
-        System.out.println("gameResults = " + gameResults);
-        gameResults.stream()
+        gameResultParser.parseResultsOnShogiAssoc(resultsPage, targetDate)
+                .stream()
+                .peek(System.out::println)
                 .map(mapToGameResultTable)
                 .forEach(gameResultTable -> gameResultsRepository.save(gameResultTable));
     }
+
+    @Scheduled(initialDelay = 1000*90*1, fixedRate = 1000*3600*12)
+    @Override
+    public void updateNHKCupResults() {
+        String NHKCupResultsPage = shogiAssocWebClient.getSimplePage(NHKCupResultsURL);
+
+        gameResultsRepository.findByTournamentNameContainingAndFirstMoverResult("NHK杯","")
+                .stream()
+                .peek(System.out::println)
+                .map(gameResultTable ->
+                        gameResultParser.parseResultsOnNHKCup(NHKCupResultsPage,gameResultTable))
+                .peek(System.out::println)
+                .forEach(gameResultTable ->
+                        gameResultsRepository.save(gameResultTable));
+    }
+
+    @Scheduled(initialDelay = 1000*60*1, fixedRate = 1000*3600*12)
+    @Override
+    public void updateGalaxyTournamentResults() {
+        String galaxyTournametResultsPage = shogiAssocWebClient.getSimplePage(GalaxyTournametResultsURL);
+
+        gameResultsRepository.findByTournamentNameContainingAndFirstMoverResult("銀河","")
+                .stream()
+                .peek(System.out::println)
+                .map(gameResultTable ->
+                        gameResultParser.parseResultsOnGalaxyTournament(galaxyTournametResultsPage,gameResultTable))
+                .peek(System.out::println)
+                .forEach(gameResultTable ->
+                        gameResultsRepository.save(gameResultTable));
+    }
+
 
     private Function<GameResult, GameResultTable> mapToGameResultTable =
             gameResult -> new GameResultTable(
@@ -49,6 +76,6 @@ public class GameResultRetrieverImpl implements GameResultRetriever {
                     gameResult.getSecondMoverResult(),
                     gameResult.getTournamentName(),
                     gameResult.getGameDate(),
-                    ""
+                    null
             );
 }
